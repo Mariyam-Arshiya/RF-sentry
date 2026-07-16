@@ -1,0 +1,12 @@
+SAMPLE_RATE      = 0.5
+WINDOW_SIZE      = 60
+THRESHOLD_LOW    = 1.5
+THRESHOLD_HIGH   = 3.5
+CALIBRATION_SECS = 10
+LOG_FILE         = "rf_sentry_log.csv"
+HOTSPOT_IP       = "192.168.43.1"
+APP_NAME         = "RF-SENTRY PRO"
+VERSION          = "2.0.0"
+PLOT_BUFFER      = 100
+PING_TIMEOUT_MS  = 1000
+PING_COUNT       = 1
