@@ -1,8 +1,14 @@
-import re
+﻿import re
+import os
 import subprocess
 import datetime
 import config
 from kalman import KalmanFilter
+
+
+SYSTEM32 = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32")
+NETSH    = os.path.join(SYSTEM32, "netsh.exe")
+PING     = os.path.join(SYSTEM32, "PING.EXE")
 
 
 class WiFiCollector:
@@ -14,47 +20,54 @@ class WiFiCollector:
     def rssi(self):
         try:
             raw = subprocess.check_output(
-                'netsh wlan show interfaces',
-                shell=True,
+                [NETSH, "wlan", "show", "interfaces"],
                 universal_newlines=True,
-                timeout=3
+                timeout=3,
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
             for line in raw.splitlines():
-                if 'Signal' in line:
-                    m = re.search(r'(\d+)\s*%', line)
-                    if m:
-                        pct            = int(m.group(1))
-                        dbm            = (pct / 2) - 100
+                if "Signal" in line and "%" in line:
+                    match = re.search(r"(\d+)\s*%", line)
+                    if match:
+                        pct            = int(match.group(1))
+                        dbm            = (pct / 2.0) - 100.0
                         filtered       = self.kalman.update(dbm)
                         self.last_rssi = filtered
                         return filtered, pct
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[RSSI ERROR] {e}")
         return self.last_rssi, 0
 
     def ping(self):
         try:
             raw = subprocess.check_output(
-                f'ping -n {config.PING_COUNT} -w {config.PING_TIMEOUT_MS} {config.HOTSPOT_IP}',
-                shell=True,
+                [PING, "-n", "1", "-w", "500", config.HOTSPOT_IP],
                 universal_newlines=True,
-                timeout=5
+                timeout=3,
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW
             )
-            for pattern in [r'Average = (\d+)ms', r'time[=<](\d+)ms']:
-                m = re.search(pattern, raw)
-                if m:
-                    self.last_ping = float(m.group(1))
+            patterns = [
+                r"time[=<](\d+)ms",
+                r"Average = (\d+)ms",
+                r"time=(\d+\.?\d*)\s*ms"
+            ]
+            for pattern in patterns:
+                match = re.search(pattern, raw)
+                if match:
+                    self.last_ping = float(match.group(1))
                     return self.last_ping
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[PING ERROR] {e}")
         return self.last_ping
 
     def sample(self):
         rssi_val, pct = self.rssi()
         ping_val      = self.ping()
         return {
-            'rssi'   : rssi_val,
-            'percent': pct,
-            'ping'   : ping_val,
-            'ts'     : datetime.datetime.now()
+            "rssi"   : rssi_val,
+            "percent": pct,
+            "ping"   : ping_val,
+            "ts"     : datetime.datetime.now()
         }
