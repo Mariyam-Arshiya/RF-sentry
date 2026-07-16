@@ -1,4 +1,4 @@
-import tkinter as tk
+﻿import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
 import datetime
@@ -395,3 +395,4 @@ class Dashboard:
         )
         b.pack(fill='x', padx=12, pady=3)
         return b
+
