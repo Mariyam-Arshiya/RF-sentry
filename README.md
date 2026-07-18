@@ -1,131 +1,185 @@
-# RF-sentry
-RF-Sentry Pro
+# RF-Sentry Pro
 
-Real-time WiFi-based human presence detection using only a laptop's WiFi adapter and a mobile hotspot — no cameras, no PIR sensors, no dedicated hardware.
+**Real-Time WiFi-Based Human Presence Detection — No Cameras, No Extra Hardware**
 
-Show Image
-Show Image
-Show Image
-Show Image
+RF-Sentry Pro is a lightweight, real-time human movement detection system that uses only a standard laptop WiFi adapter and a mobile hotspot. By analyzing fluctuations in WiFi signal strength (RSSI), it detects environmental disturbances caused by human presence—without requiring cameras, PIR sensors, SDRs, or specialized RF hardware.
 
+---
 
-What it does
+## 🚀 Overview
 
-RF-Sentry Pro detects human movement inside a room by analyzing fluctuations in WiFi signal strength (RSSI). It reads live signal data from a standard Windows WiFi adapter, filters noise with a Kalman filter, computes rolling statistical variance, and fuses several metrics into an anomaly score — classifying the environment in real time as Secure, Minor Movement, or Intrusion Detected.
+RF-Sentry Pro leverages statistical signal processing to monitor WiFi signal behavior and classify environmental activity into:
 
-No specialized RF hardware, no SDR, no CSI-capable network card. Just a laptop, a phone's hotspot, and signal processing.
+* 🟢 **Secure**
+* 🟡 **Minor Movement**
+* 🔴 **Intrusion Detected**
 
-Why this works (the physics)
+The system operates entirely on consumer-grade hardware, making it accessible, portable, and easy to deploy.
 
+---
 
-WiFi operates at 2.4GHz / 5GHz.
-The human body is roughly 70% water, and water absorbs and scatters RF energy at these frequencies.
-When a person moves through the RF field between two devices, they don't just "block" the signal — they measurably alter multipath propagation, causing attenuation and reflection changes.
-This shows up as fluctuation in RSSI (signal strength) and, secondarily, in ping latency as packets take disrupted paths.
+## 🧠 How It Works
 
+WiFi signals at **2.4 GHz / 5 GHz** interact with the human body, which is ~70% water. When a person moves within the signal path:
 
-This is the same underlying phenomenon studied in academic WiFi-sensing research using Channel State Information (CSI). RF-Sentry Pro is intentionally scoped to work with the coarser RSSI signal available on any consumer Windows laptop, trading some precision for zero hardware requirements.
+* RF signals are **absorbed, reflected, and scattered**
+* **Multipath propagation changes**
+* Measurable fluctuations appear in:
 
-Architecture
+  * RSSI (signal strength)
+  * Ping latency
 
+RF-Sentry Pro captures and analyzes these fluctuations in real time.
+
+---
+
+## ⚙️ Architecture
+
+```
 rf_sentry/
-├── main.py          → Entry point, launches the dashboard
-├── config.py        → Constants: sample rate, thresholds, file paths
-├── kalman.py         → Kalman filter for RSSI/ping noise reduction
-├── collector.py       → Live data collection via netsh + ping (subprocess)
-├── engine.py         → Rolling-window statistics + anomaly fusion score
-├── logger.py          → Timestamped CSV logging for reproducible research data
-├── plots.py           → Live 4-panel visualization (RSSI, ping, score, heatmap)
-└── dashboard.py        → Tkinter UI: controls, live metrics, status panel
+├── main.py        # Entry point
+├── config.py      # Configuration constants
+├── kalman.py      # Noise filtering (Kalman filter)
+├── collector.py   # Data collection (netsh + ping)
+├── engine.py      # Statistical analysis + anomaly scoring
+├── logger.py      # CSV logging
+├── plots.py       # Real-time visualization
+└── dashboard.py   # Tkinter-based UI
+```
 
-Detection method
+---
 
-Rolling metrics (per cycle):
+## 📊 Detection Method
 
+### Rolling Metrics
 
-rssi_std — standard deviation of recent RSSI readings
-rssi_range — peak-to-peak spread of recent readings
-ping_std — standard deviation of ping latency
-drift — deviation from the calibrated baseline mean
+* **rssi_std** → RSSI standard deviation
+* **rssi_range** → Peak-to-peak RSSI spread
+* **ping_std** → Ping latency variation
+* **drift** → Deviation from baseline
 
+### Fusion Score
 
-Fusion score:
+```
+score = (σ_rssi × 0.50)
+      + (range × 0.20)
+      + (drift × 0.20)
+      + (σ_ping × 0.10)
+```
 
-score = (σ_rssi × 0.50) + (range × 0.20) + (drift × 0.20) + (σ_ping × 0.10)
+### Classification
 
-Classification:
+| Score Range | Status                |
+| ----------- | --------------------- |
+| < 1.5       | 🟢 Secure             |
+| 1.5 – 3.5   | 🟡 Minor Movement     |
+| ≥ 3.5       | 🔴 Intrusion Detected |
 
-ScoreStatus< 1.5🟢 Secure1.5 – 3.5🟡 Minor Movement≥ 3.5🔴 Intrusion Detected
+---
 
-Getting started
+## 🛠️ Requirements
 
-Requirements
+* Windows 10 / 11
+* Python 3.8+
+* Active mobile hotspot connection
 
+Install dependencies:
 
-Windows 10/11
-Python 3.8+
-An active mobile hotspot connection
+```
 pip install matplotlib numpy scipy
+```
 
+---
 
-Setup
+## 🔧 Setup
 
-bashgit clone https://github.com/Mariyam-Arshiya/RF-sentry.git
+```
+git clone https://github.com/Mariyam-Arshiya/RF-sentry.git
 cd RF-sentry
 pip install -r requirements.txt
 python main.py
+```
 
-Set your hotspot gateway IP in config.py (find it via ipconfig).
+Update your hotspot gateway IP in `config.py` (use `ipconfig` to find it).
 
-Usage
+---
 
+## ▶️ Usage
 
-Connect your laptop to your phone's mobile hotspot.
-Click Calibrate Baseline and stay still in an empty area for 10 seconds.
-Click Start Monitoring.
-Walk between the laptop and phone — watch RSSI shift and the anomaly score rise.
-Export the session as CSV for further analysis.
+1. Connect your laptop to your phone's hotspot
+2. Click **Calibrate Baseline**
 
+   * Stay still for ~10 seconds
+3. Click **Start Monitoring**
+4. Move between the laptop and hotspot
+5. Observe real-time signal changes and anomaly score
+6. Export session logs as CSV for analysis
 
-Screenshots
+---
 
-(add your dashboard screenshot / demo GIF here)
+## 📉 Limitations
 
-Honest limitations
+* **Single Access Point**
+  Detects motion, not exact location
 
+* **Windows Only**
+  Depends on `netsh` and Windows ping behavior
 
-Single access point — detects "something moved," not precise location. No triangulation without multiple APs.
-Windows-only — relies on netsh and Windows-specific ping behavior.
-RSSI, not CSI — this project uses signal-strength aggregates rather than full Channel State Information. CSI-based systems (using specialized network cards) achieve sub-meter precision; RSSI-based systems trade that precision for zero extra hardware.
-Statistical thresholds, not a trained model — current detection uses tuned statistical rules rather than a classifier trained on labeled data (see Roadmap).
-Environmental sensitivity — large metal objects or overlapping WiFi networks can cause false positives; the Kalman filter mitigates but does not eliminate this.
+* **RSSI-Based (Not CSI)**
+  Lower precision than CSI-based systems
 
+* **Static Thresholds**
+  Uses rule-based classification (not ML yet)
 
-Roadmap
+* **Environmental Sensitivity**
+  Interference from objects/networks may cause noise
 
+---
 
- Ground-truth-labeled validation dataset with precision/recall/F1 reporting
- Adaptive, self-calibrating thresholds (mean + k·σ from baseline) instead of fixed constants
- scikit-learn classifier (Random Forest / SVM) trained on logged sessions, benchmarked against the statistical baseline
- Multivariate anomaly scoring (Mahalanobis distance) in place of the linear fusion score
- Passive multi-AP RSSI logging for basic directionality
- Session replay mode for reproducible demos
- Unit test suite (pytest) for the Kalman filter and fusion score math
- Optional Flask-based web dashboard mirror
+## 🗺️ Roadmap
 
+* Labeled dataset with precision/recall/F1 metrics
+* Adaptive thresholding (baseline-driven)
+* Machine learning models (Random Forest / SVM)
+* Mahalanobis distance–based anomaly detection
+* Multi-AP support for directionality
+* Session replay system
+* Unit testing (pytest)
+* Optional Flask web dashboard
 
-Tech stack
+---
 
-Python · NumPy · SciPy · Matplotlib · Tkinter · Kalman Filtering · Statistical Signal Processing
+## 🧰 Tech Stack
 
-Inspiration
+* Python
+* NumPy, SciPy
+* Matplotlib
+* Tkinter
+* Kalman Filtering
+* Statistical Signal Processing
 
-This project was inspired by a scene in Pritam & Pedro (2026) that explored the contrast between traditional investigative intuition and modern signal intelligence — the idea of "reading a signal others miss." That inspiration shaped the concept; the physics, math, and implementation are original engineering work.
+---
 
-License
+## 💡 Inspiration
 
-MIT — see LICENSE for details.
+Inspired by *Pritam & Pedro (2026)* — the idea of extracting meaningful signals from seemingly invisible patterns. This project translates that concept into a practical engineering system grounded in RF physics and data analysis.
 
-Author
+---
 
-Mariyam Arshiya
+## 📄 License
+
+MIT License — see `LICENSE` for details.
+
+---
+
+## 👩‍💻 Author
+
+**Mariyam Arshiya**
+
+---
+
+## ⭐ Contributing
+
+Contributions, ideas, and improvements are welcome. Feel free to open issues or submit pull requests.
+
+---
