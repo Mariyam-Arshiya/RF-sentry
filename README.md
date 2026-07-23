@@ -168,7 +168,7 @@ Inspired by *Pritam & Pedro (2026)* — the idea from the viral scene where Mart
 ## Demo
 
 
-<img width="1280" height="720" alt="Screenshot (223)" src="https://github.com/user-attachments/assets/5c2f453e-a676-4a0d-bebb-c75689c303f0" />
+<img width="1280" height="720" alt="image" src="https://github.com/user-attachments/assets/bef64a2a-af10-4309-9f92-9efceb6d7643" />
 
 
 https://github.com/user-attachments/assets/479cb43f-b5a0-4d1f-a188-82c7a5f349a1
