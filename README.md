@@ -162,9 +162,18 @@ Update your hotspot gateway IP in `config.py` (use `ipconfig` to find it).
 
 ## 💡 Inspiration
 
-Inspired by *Pritam & Pedro (2026)* — the idea of extracting meaningful signals from seemingly invisible patterns. This project translates that concept into a practical engineering system grounded in RF physics and data analysis.
+Inspired by *Pritam & Pedro (2026)* — the idea from the viral scene where Martin tracks minister house using wifi sensing and router. This project translates that concept into a practical engineering system grounded in RF physics and data analysis.
 
 ---
+## Demo
+
+
+<img width="1280" height="720" alt="Screenshot (223)" src="https://github.com/user-attachments/assets/5c2f453e-a676-4a0d-bebb-c75689c303f0" />
+
+
+https://github.com/user-attachments/assets/479cb43f-b5a0-4d1f-a188-82c7a5f349a1
+
+
 
 ## 📄 License
 
